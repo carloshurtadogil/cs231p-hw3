@@ -16,12 +16,20 @@ void communicate(int);
 int main(int argc, char const *argv[]) {
   int sock, connection, len;
   struct sockaddr_in serveraddr, clientaddr;
+  int opt = 1;
 
-  len = sizeof(clientaddr);
+  len = sizeof(serveraddr);
   sock = socket(AF_INET, SOCK_STREAM, 0); // create socket
   if (sock == -1) {
     printf("Failed to create socket...\n");
     exit(0);
+  }
+
+  if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, 
+                                                  &opt, sizeof(opt))) 
+  { 
+      perror("setsockopt"); 
+      exit(EXIT_FAILURE); 
   }
   printf("Socket created successfully...\n");
 
@@ -29,11 +37,11 @@ int main(int argc, char const *argv[]) {
 
   // setup IP address and PORT
   serveraddr.sin_family = AF_INET;
-  serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+  serveraddr.sin_addr.s_addr = INADDR_ANY;
   serveraddr.sin_port = htons(PORT);
 
   // bind socket to a given IP address
-  if ((bind(sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr))) != 0) {
+  if ((bind(sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr))) < 0) {
     printf("Failed to bind socket...\n");
     close(sock);
     exit(0);
@@ -49,7 +57,7 @@ int main(int argc, char const *argv[]) {
   printf("Server is listening...\n");
 
   // Accept data packet from a client
-  connection = accept(sock, (struct sockaddr*)&clientaddr, &len);
+  connection = accept(sock, (struct sockaddr*)&serveraddr, &len);
   if(connection < 0) {
     printf("Failed to connect with client...\n");
     close(sock);
@@ -57,6 +65,14 @@ int main(int argc, char const *argv[]) {
   }
   printf("Client accepted...\n");
   
+  char buffer[1024];
+  int valread = read(connection, buffer, 1024);
+  printf("%s\n", buffer);
+  char *response = "Message Reveived";
+  send(connection, response, strlen(response), 0);
+  printf("Responded\n");
+  return 0;
+
   // begin communicating with the client
   communicate(connection);
 
@@ -64,29 +80,3 @@ int main(int argc, char const *argv[]) {
   exit(1);
 }
 
-/**
- * Communicate with a client via a connecting socket
- * 
- * @param connection Accepted data packet from client
-*/
-void communicate(int connection) {
-  char buf[BUFFSIZE]; // array to store content of received message
-  char response[] = "Message Received";
-  int responseSize = sizeof(response);
-  bool running = true;
-
-  while(running) {
-    bzero(buf, BUFFSIZE); // set all array values to 0
-
-    read(connection, buf, sizeof(buf)); // read client message and store in buf
-    printf("Buffer content: %s\n", buf);
-    
-    write(connection, response, responseSize); // send response to client
-    
-    // Client command to shutdown server
-    if(strncmp("exit", buf, 4) == 0) {
-      printf("Exiting server...\n");
-      running = false;
-    }
-  }
-}
