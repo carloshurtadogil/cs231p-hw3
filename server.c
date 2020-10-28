@@ -70,7 +70,7 @@ int main(int argc, char const *argv[]) {
  * @param connection Accepted data packet from client
 */
 void communicate(int connection) {
-  char buf[BUFFSIZE];
+  char buf[BUFFSIZE]; // array to store content of received message
   char response[] = "Message Received";
   int responseSize = sizeof(response);
   bool running = true;
@@ -81,7 +81,7 @@ void communicate(int connection) {
     read(connection, buf, sizeof(buf)); // read client message and store in buf
     printf("Buffer content: %s\n", buf);
     
-    write(connection, response, responseSize);
+    write(connection, response, responseSize); // send response to client
     
     // Client command to shutdown server
     if(strncmp("exit", buf, 4) == 0) {
