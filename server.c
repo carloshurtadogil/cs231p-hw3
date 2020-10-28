@@ -23,9 +23,9 @@ int main(int argc, char const *argv[]) {
     printf("Failed to create socket...\n");
     exit(0);
   }
-
   printf("Socket created successfully...\n");
-  bzero(&servaddr, sizeof(servaddr));
+
+  bzero(&servaddr, sizeof(servaddr)); // set values to 0
 
   // setup IP address and PORT
   servaddr.sin_family = AF_INET;
@@ -57,11 +57,18 @@ int main(int argc, char const *argv[]) {
   }
   printf("Client accepted...\n");
   
+  // begin communicating with the client
   communicate(connection);
 
   close(sock); // close socket
+  exit(1);
 }
 
+/**
+ * Communicate with a client via a connecting socket
+ * 
+ * @param connection Accepted data packet from client
+*/
 void communicate(int connection) {
   char buf[BUFFSIZE];
   char response[] = "Message Received";
