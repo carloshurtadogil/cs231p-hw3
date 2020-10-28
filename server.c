@@ -15,25 +15,25 @@ void communicate(int);
 
 int main(int argc, char const *argv[]) {
   int sock, connection, len;
-  struct sockaddr_in servaddr, cli;
+  struct sockaddr_in serveraddr, clientaddr;
 
-  len = sizeof(cli);
-  sock = socket(AF_INET, SOCK_STREAM, 0); // create socket for intramachine use
+  len = sizeof(clientaddr);
+  sock = socket(AF_INET, SOCK_STREAM, 0); // create socket
   if (sock == -1) {
     printf("Failed to create socket...\n");
     exit(0);
   }
   printf("Socket created successfully...\n");
 
-  bzero(&servaddr, sizeof(servaddr)); // set values to 0
+  bzero(&serveraddr, sizeof(serveraddr)); // set values to 0
 
   // setup IP address and PORT
-  servaddr.sin_family = AF_INET;
-  servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  servaddr.sin_port = htons(PORT);
+  serveraddr.sin_family = AF_INET;
+  serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+  serveraddr.sin_port = htons(PORT);
 
   // bind socket to a given IP address
-  if ((bind(sock, (struct sockaddr*)&servaddr, sizeof(servaddr))) != 0) {
+  if ((bind(sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr))) != 0) {
     printf("Failed to bind socket...\n");
     close(sock);
     exit(0);
@@ -49,7 +49,7 @@ int main(int argc, char const *argv[]) {
   printf("Server is listening...\n");
 
   // Accept data packet from a client
-  connection = accept(sock, (struct sockaddr*)&cli, &len);
+  connection = accept(sock, (struct sockaddr*)&clientaddr, &len);
   if(connection < 0) {
     printf("Failed to connect with client...\n");
     close(sock);
