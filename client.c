@@ -5,33 +5,36 @@
 #include <unistd.h> 
 #include <string.h> 
 #define PORT 8080
+#define SERVER_ADDR "192.168.100.4"
 
 int main(int argc, char const * argv[]) {
-    int sock = 0, valread;
+    int socket_fd = 0;
     char *hello = "Hello from client";
     struct sockaddr_in serv_addr;
     char buffer[1024] = {0};
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0) {
-        printf("\n Socket create failed \n");
+
+    socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (socket_fd < 0) {
+        printf("Socket creation failed... \n");
         return -1;
     }
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT);
 
-
-    if (inet_pton(AF_INET, "192.168.100.4", &serv_addr.sin_addr) <= 0){
-        printf("\n invalid address \n");
+    // Set up server address format
+    if (inet_pton(AF_INET, SERVER_ADDR, &serv_addr.sin_addr) <= 0){
+        printf("Invalid server address... \n");
         return -1;
     }
 
-    if (connect(sock, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
-        printf("\n failed to connect %s \n", strerror(errno));
+    if (connect(socket_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
+        printf("Failed to connect to server... %s \n", strerror(errno));
         return -1;
     }
-    send(sock, hello, strlen(hello), 0);
-    valread = read(sock, buffer, 1024);
+    send(socket_fd, hello, strlen(hello), 0);
+    printf("Sent message: %s\n", hello);
+    int bytes_read = recv(socket_fd, buffer, 1024, 0);
     printf("Got message: %s\n", buffer);
     return 0;
 }

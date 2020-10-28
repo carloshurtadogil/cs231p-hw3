@@ -63,7 +63,7 @@ int main(int argc, char const *argv[]) {
   char buffer[1024];
   int bytes_read = recv(connection_fd, buffer, 1024, 0);
   printf("Got message from client: %s\n", buffer);
-  char * response = "Message Reveived";
+  char * response = "Message Received";
   send(connection_fd, response, strlen(response), 0);
   printf("Responded with: %s\n", response);
   
