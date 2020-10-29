@@ -9,65 +9,68 @@
 #include <unistd.h>
 
 #define PORT 8080 
-#define BUFFSIZE 512
-
-void communicate(int);
+#define BUFFSIZE 1024
 
 int main(int argc, char const *argv[]) {
+  // The socket_fd which will be used to create connection fds.
   int socket_fd, connection_fd, len;
+  // Structs to hold information about the client and the server.
   struct sockaddr_in serveraddr, clientaddr;
   int addr_len = sizeof(struct sockaddr_in);
   int res = 0;
 
 
-  socket_fd = socket(AF_INET, SOCK_STREAM, 0); // create socket
+  // Create socket on which we will listen.
+  socket_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (socket_fd == -1) {
     printf("Failed to create socket...\n");
-    return 0;
+    return -1;
   }
   printf("Socket created successfully...\n");
 
-  // setup IP address and PORT
+  // Set up IP address and PORT.
   serveraddr.sin_family = AF_INET;
   serveraddr.sin_addr.s_addr = INADDR_ANY;
   serveraddr.sin_port = htons(PORT);
   
 
-  // bind socket to a given IP address
+  // Bind socket to a given IP address.
   res = bind(socket_fd, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
   if (res < 0) {
     printf("Failed to bind socket...\n");
     close(socket_fd);
-    return 0;
+    return -1;
   }
   printf("Socket bound successfully...\n");
   
-  // Set server to start listening for client
+  // Set server to start listening for client.
   res = listen(socket_fd, 1);
   if (res == -1) {
     printf("Server failed to listen...\n");
     close(socket_fd);
-    return 0;
+    return -1;
   }
   printf("Server is listening...\n");
 
-  // Accept data packet from a client
+  // Accept data packet from a client.
   connection_fd = accept(socket_fd, (struct sockaddr*)&clientaddr, &addr_len);
   if (connection_fd < 0) {
     printf("Failed to connect with client...\n");
     close(socket_fd);
-    return 0;
+    return -1;
   }
   printf("Client accepted...\n");
   
-  char buffer[1024];
-  int bytes_read = recv(connection_fd, buffer, 1024, 0);
+  char buffer[BUFFSIZE];
+  // Receive message from client.
+  int bytes_read = recv(connection_fd, buffer, BUFFSIZE, 0);
   printf("Got message from client: %s\n", buffer);
   char * response = "Message Received";
+  // Send a response back.
   send(connection_fd, response, strlen(response), 0);
   printf("Responded with: %s\n", response);
-  
-  close(socket_fd); // close socket
+  // Close socket.
+  close(socket_fd); 
   return 0;
 }
 
